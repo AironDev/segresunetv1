@@ -103,7 +103,6 @@ def load_model():
 model = load_model()
 
 # Preprocess NIfTI medical image
-# Preprocess NIfTI medical image
 def preprocess_image(image_file):
     # Check if the file is .nii or .nii.gz
     if image_file.endswith(".gz"):
