@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import streamlit as st
 import nibabel as nib
 import numpy as np
-from monai.transforms import Compose, Resize, ScaleIntensity, Activations, AsDiscrete
+from monai.transforms import Compose, Activations, AsDiscrete
 from monai.inferers import sliding_window_inference
 from monai.metrics import DiceMetric
 
@@ -126,17 +126,6 @@ def preprocess_image(image_file):
     # Debug: Print shape of img_data after replication
     st.write(f"Image shape after channel replication: {img_data.shape}")
 
-    # Apply intensity scaling only (no resize)
-    transforms = Compose([
-        # ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
-    ])
-    
-    try:
-        # Apply transformations
-        img_data = transforms(img_data)
-    except Exception as e:
-        st.write(f"Error applying transformations: {e}")
-    
     # Convert to torch.Tensor
     img_tensor = torch.Tensor(img_data).to(device)
 
