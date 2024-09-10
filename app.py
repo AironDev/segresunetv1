@@ -150,11 +150,12 @@ uploaded_file = st.file_uploader("Choose a NIfTI image file", type=["nii", "nii.
 
 if uploaded_file is not None:
     # Save the uploaded file to a temporary location
-    with open("temp.nii.gz", "wb") as f:
+    temp_file_path = "temp_file.nii.gz" if uploaded_file.name.endswith(".gz") else "temp_file.nii"
+    with open(temp_file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
 
     # Preprocess the image file
-    input_image = preprocess_image("temp.nii.gz")
+    input_image = preprocess_image(temp_file_path)
     st.write("Running inference...")
 
     # Run inference
