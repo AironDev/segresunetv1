@@ -1,56 +1,52 @@
 import torch
 import streamlit as st
-from torchvision import transforms
-from PIL import Image
+from monai.transforms import Compose, Activations, AsDiscrete
+from monai.inferers import sliding_window_inference
+from monai.metrics import DiceMetric
+from model import HybridSegResNetUNet  # Import the model from the model.py file
 
-# Load your pre-trained model
-@st.cache_resource  # This ensures the model is cached
+# Load the saved model
+@st.cache_resource
 def load_model():
-    model = torch.load("best_metric_model.pth", map_location=torch.device('cpu'))
-    model.eval()  # Put the model in evaluation mode
+    model = HybridSegResNetUNet(in_channels=5, out_channels=3)
+    model.load_state_dict(torch.load("best_metric_model.pth", map_location=torch.device('cpu')))
+    model.eval()  # Set the model to evaluation mode
     return model
 
 model = load_model()
 
 # Define a function to preprocess the input image
 def preprocess_image(image):
-    # Example preprocessing steps (adjust based on your model’s requirements)
-    preprocess = transforms.Compose([
-        transforms.Resize((240, 240)),  # Resize image if needed
-        transforms.ToTensor(),          # Convert image to tensor
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-    image = preprocess(image).unsqueeze(0)  # Add batch dimension
+    # Add your preprocessing steps here (resizing, normalization, etc.)
     return image
 
-# Define the prediction function
-def predict(image_input):
+# Define the inference function
+def inference(image_input):
+    # Assuming the input image is already preprocessed and in the right shape (torch.Tensor)
     with torch.no_grad():
-        prediction = model(image_input)
-        return prediction
+        output = sliding_window_inference(
+            inputs=image_input,
+            roi_size=(240, 240, 160), 
+            sw_batch_size=1, 
+            predictor=model, 
+            overlap=0.5
+        )
+    return output
 
-# Streamlit app
-def main():
-    st.title("Tumor Segmentation Model Deployment")
-    st.write("Upload an MRI scan image for tumor segmentation.")
+# Streamlit app layout
+st.title("HybridSegResNetUNet Medical Image Segmentation")
+uploaded_file = st.file_uploader("Choose an image file", type=["nii", "nii.gz"])
 
-    # Upload an image
-    uploaded_file = st.file_uploader("Choose an MRI scan...", type="jpg")
+if uploaded_file is not None:
+    # Load and preprocess the uploaded image
+    input_image = preprocess_image(uploaded_file)  # You need to implement this function
+    st.write("Running inference...")
+    
+    # Run inference
+    output = inference(input_image)
+    st.write("Inference completed.")
 
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-
-        # Preprocess the image
-        image_input = preprocess_image(image)
-
-        # Run prediction
-        prediction = predict(image_input)
-
-        # Display the original image
-        st.image(image, caption='Uploaded MRI scan.', use_column_width=True)
-
-        # Display prediction
-        st.write("Prediction:", prediction)
-
-if __name__ == "__main__":
-    main()
+    # Post-process and display the output
+    post_trans = Compose([Activations(sigmoid=True), AsDiscrete(threshold=0.5)])
+    processed_output = post_trans(output)
+    st.write("Processed Output:", processed_output)
