@@ -8,7 +8,7 @@ from monai.transforms import Compose, Activations, AsDiscrete
 from monai.inferers import sliding_window_inference
 from monai.metrics import DiceMetric
 
-# Define your HybridSegResNetUNet model class
+# Define your HybridSegResNetUNet model classss
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1):
         super(ResidualBlock, self).__init__()
