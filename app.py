@@ -104,8 +104,11 @@ model = load_model()
 
 # Preprocess NIfTI medical image
 def preprocess_image(image_file):
-    # Load the NIfTI image using nibabel
-    img = nib.load(image_file)
+    # Check if the file is .nii or .nii.gz
+    if image_file.endswith(".gz"):
+        img = nib.load(image_file)  # Load compressed NIfTI
+    else:
+        img = nib.load(image_file)  # Load uncompressed NIfTI
     
     # Get image data as a NumPy array
     img_data = img.get_fdata()
