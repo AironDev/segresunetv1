@@ -120,7 +120,7 @@ def preprocess_image(image_file):
     # Apply transformations (resizing, intensity scaling, etc.)
     transforms = Compose([
         # Resize(spatial_size=(240, 240, 160)),  # Resize to match the expected input shape
-        ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
+        # ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
     ])
     
     # Apply transformations
