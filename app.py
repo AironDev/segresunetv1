@@ -128,7 +128,7 @@ def preprocess_image(image_file):
 
     # Apply intensity scaling only (no resize)
     transforms = Compose([
-        ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
+        # ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
     ])
     
     try:
