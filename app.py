@@ -103,6 +103,7 @@ def load_model():
 model = load_model()
 
 # Preprocess NIfTI medical image
+# Preprocess NIfTI medical image
 def preprocess_image(image_file):
     # Check if the file is .nii or .nii.gz
     if image_file.endswith(".gz"):
@@ -113,19 +114,30 @@ def preprocess_image(image_file):
     # Get image data as a NumPy array
     img_data = img.get_fdata()
     
-    # Add a batch and channel dimension
+    # Debug: Print shape of img_data
+    st.write(f"Original image shape: {img_data.shape}")
+    
+    # Add batch and channel dimension
     img_data = np.expand_dims(img_data, axis=0)  # Add batch dimension
-    img_data = np.expand_dims(img_data, axis=0)  # Add channel dimension (since in_channels=5)
+    img_data = np.expand_dims(img_data, axis=0)  # Add initial channel dimension (1 channel)
+    
+    # Replicate the single channel image to match the expected input channels (5 channels)
+    img_data = np.repeat(img_data, 5, axis=1)  # Replicate the channel 5 times
+    
+    # Debug: Print shape of img_data after replication
+    st.write(f"Image shape after channel replication: {img_data.shape}")
 
-    # Apply transformations (resizing, intensity scaling, etc.)
+    # Apply intensity scaling only (no resize)
     transforms = Compose([
-        # Resize(spatial_size=(240, 240, 160)),  # Resize to match the expected input shape
-        # ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
+        ScaleIntensity(minv=0.0, maxv=1.0)  # Normalize the pixel intensity
     ])
     
-    # Apply transformations
-    img_data = transforms(img_data)
-
+    try:
+        # Apply transformations
+        img_data = transforms(img_data)
+    except Exception as e:
+        st.write(f"Error applying transformations: {e}")
+    
     # Convert to torch.Tensor
     img_tensor = torch.Tensor(img_data).to(device)
 
